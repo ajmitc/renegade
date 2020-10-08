@@ -1,5 +1,6 @@
 package renegade.game.board;
 
+import renegade.game.Avatar;
 import renegade.game.Server;
 
 import java.util.ArrayList;
@@ -25,5 +26,19 @@ public class Board {
 
     public List<ServerTile> getServerTiles() {
         return serverTiles;
+    }
+
+    public ServerTile getServerTile(Server server){
+        return serverTiles.stream().filter(st -> st.getServer() == server).findFirst().get();
+    }
+
+    public Partition getPlayerPartition(Avatar avatar){
+        for (ServerTile st: serverTiles){
+            for (Partition partition: st.getPartitions()){
+                if (partition.getAvatars().contains(avatar))
+                    return partition;
+            }
+        }
+        return null;
     }
 }

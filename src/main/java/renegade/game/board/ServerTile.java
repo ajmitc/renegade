@@ -104,4 +104,8 @@ public class ServerTile {
     public List<Partition> getPartitions() {
         return partitions;
     }
+
+    public Partition getPartition(int number){
+        return partitions.get(number - 1);
+    }
 }
