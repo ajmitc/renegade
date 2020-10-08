@@ -14,6 +14,7 @@ public class Game {
     private List<Avatar> avatars = new ArrayList<>();
     private int currentPlayerIndex = 0;
     private SMC smc;
+    private boolean currentPlayerPassed = false;
 
     public Game() {
         phase = GamePhase.SETUP;
@@ -77,5 +78,13 @@ public class Game {
 
     public void setSmc(SMC smc) {
         this.smc = smc;
+    }
+
+    public void setCurrentPlayerPassed(boolean currentPlayerPassed) {
+        this.currentPlayerPassed = currentPlayerPassed;
+    }
+
+    public boolean isCurrentPlayerPassed() {
+        return currentPlayerPassed;
     }
 }

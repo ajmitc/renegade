@@ -30,4 +30,8 @@ public class Avatar {
     public CommandDeck getDeck() {
         return deck;
     }
+
+    public List<CommandCard> getHand() {
+        return hand;
+    }
 }

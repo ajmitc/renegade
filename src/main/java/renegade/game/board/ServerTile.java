@@ -1,11 +1,14 @@
 package renegade.game.board;
 
 import renegade.game.Server;
+import renegade.view.ImageUtil;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServerTile {
+    private Image image;
     private Server server;
     private List<Partition> partitions = new ArrayList<>(6);
 
@@ -13,6 +16,23 @@ public class ServerTile {
         this.server = server;
         for (int i = 1; i <= 6; ++i)
             partitions.add(new Partition(i));
+        switch (this.server){
+            case YELLOW:
+                image = ImageUtil.get("Map Yellow Front.png");
+                break;
+            case GREEN:
+                image = ImageUtil.get("Map Green Front.png");
+                break;
+            case BLUE:
+                image = ImageUtil.get("Map Blue Front.png");
+                break;
+            case RED:
+                image = ImageUtil.get("Map Red Front.png");
+                break;
+            case PURPLE:
+                image = ImageUtil.get("Map Violet Front.png");
+                break;
+        }
     }
 
     /**
@@ -107,5 +127,9 @@ public class ServerTile {
 
     public Partition getPartition(int number){
         return partitions.get(number - 1);
+    }
+
+    public Image getImage() {
+        return image;
     }
 }
