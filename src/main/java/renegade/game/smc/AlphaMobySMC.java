@@ -25,8 +25,7 @@ public class AlphaMobySMC extends SMC {
     }
 
     @Override
-    public void startOfTurn(Game game) {
-        super.startOfTurn(game);
+    public void placeStartOfTurnCountermeasure(Game game) {
         // Add spark to current player's partition
         Avatar player = game.getCurrentPlayer();
         game.getBoard().getPlayerPartition(player).getCountermeasures().add(Countermeasure.SPARK);

@@ -1,10 +1,13 @@
 package renegade.game;
 
 import renegade.game.board.Board;
+import renegade.game.card.*;
 import renegade.game.smc.SMC;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Game {
     private GamePhase phase;
@@ -14,7 +17,15 @@ public class Game {
     private List<Avatar> avatars = new ArrayList<>();
     private int currentPlayerIndex = 0;
     private SMC smc;
+    private Map<SecurityLevel, List<CountermeasureGoalCard>> countermeasureGoals = new HashMap<>();
+    private int countermeasureGoalCardIndex = 0;
+    private SecurityLevel securityLevel = SecurityLevel.COPPER;
     private boolean currentPlayerPassed = false;
+    private CommandDeck hackShackDeck = new CommandDeck(null);
+    private List<CommandCard> hackShackMarket = new ArrayList<>(4);
+    private int score = 0;
+
+    private List<ContainmentPlacement> containmentPlacements = new ArrayList<>();
 
     public Game() {
         phase = GamePhase.SETUP;
@@ -32,8 +43,41 @@ public class Game {
     }
 
     public void setupSMC(){
+        // Add CountermeasureGoal cards
+        CountermeasureGoalCopperDeck copperDeck = new CountermeasureGoalCopperDeck();
+        CountermeasureGoalSilverDeck silverDeck = new CountermeasureGoalSilverDeck();
+        CountermeasureGoalGoldDeck goldDeck     = new CountermeasureGoalGoldDeck();
+
+        countermeasureGoals.put(SecurityLevel.COPPER, new ArrayList<>());
+        countermeasureGoals.put(SecurityLevel.SILVER, new ArrayList<>());
+        countermeasureGoals.put(SecurityLevel.GOLD, new ArrayList<>());
+        for (int i = 0; i < smc.getNumCopperCountermeasureGoals(); ++i){
+            countermeasureGoals.get(SecurityLevel.COPPER).add(copperDeck.draw());
+        }
+        for (int i = 0; i < smc.getNumSilverCountermeasureGoals(); ++i){
+            countermeasureGoals.get(SecurityLevel.SILVER).add(silverDeck.draw());
+        }
+        for (int i = 0; i < smc.getNumGoldCountermeasureGoals(); ++i){
+            countermeasureGoals.get(SecurityLevel.GOLD).add(goldDeck.draw());
+        }
+
+        // Do special SMC setup
         smc.setup(this);
     }
+
+    public void refillHackShackMarket(){
+        while (hackShackMarket.size() < 4){
+            hackShackMarket.add(hackShackDeck.draw());
+        }
+    }
+
+    public void purgeHackShackMarket(){
+        for(CommandCard card: hackShackMarket){
+            hackShackDeck.discard(card);
+        }
+        hackShackMarket.clear();
+    }
+
 
     public GamePhase getPhase() {
         return phase;
@@ -86,5 +130,54 @@ public class Game {
 
     public boolean isCurrentPlayerPassed() {
         return currentPlayerPassed;
+    }
+
+    public List<CountermeasureGoalCard> getCountermeasureGoals(SecurityLevel securityLevel) {
+        return countermeasureGoals.get(securityLevel);
+    }
+
+    public List<CountermeasureGoalCard> getCountermeasureGoals() {
+        return countermeasureGoals.get(securityLevel);
+    }
+
+    public CountermeasureGoalCard getCountermeasureGoal(){
+        return countermeasureGoals.get(securityLevel).get(countermeasureGoalCardIndex);
+    }
+
+    public SecurityLevel getSecurityLevel() {
+        return securityLevel;
+    }
+
+    public void setSecurityLevel(SecurityLevel securityLevel) {
+        this.securityLevel = securityLevel;
+    }
+
+    public void setNextCountermeasureGoal(){
+        countermeasureGoalCardIndex += 1;
+        List<CountermeasureGoalCard> goals = countermeasureGoals.get(securityLevel);
+        if (countermeasureGoalCardIndex >= goals.size()){
+            securityLevel = SecurityLevel.values()[securityLevel.ordinal() + 1];
+            countermeasureGoalCardIndex = 0;
+        }
+    }
+
+    public List<CommandCard> getHackShackMarket() {
+        return hackShackMarket;
+    }
+
+    public List<ContainmentPlacement> getContainmentPlacements() {
+        return containmentPlacements;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    public void adjScore(int amount){
+        this.score += amount;
     }
 }

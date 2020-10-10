@@ -3,7 +3,7 @@ package renegade.game.card;
 import renegade.game.Containment;
 import renegade.game.Server;
 
-public class CommandDeck extends Deck {
+public class CommandDeck extends Deck<CommandCard> {
 
     public CommandDeck(Server server) {
         super();

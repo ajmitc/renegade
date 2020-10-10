@@ -4,16 +4,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Deck {
-    private List<Card> deck = new ArrayList<>();
-    private List<Card> discardList = new ArrayList<>();
+public class Deck<C extends Card> {
+    private List<C> deck = new ArrayList<>();
+    private List<C> discardList = new ArrayList<>();
 
     public Deck() {
 
     }
 
 
-    public Card draw(){
+    public C draw(){
         if (deck.isEmpty()){
             return null;
         }
@@ -21,10 +21,17 @@ public class Deck {
     }
 
 
-    public void discard(Card card){
+    public void discard(C card){
         discardList.add(card);
     }
 
+    public void discard(List<C> cards){
+        discardList.addAll(cards);
+    }
+
+    public void shuffle(){
+        Collections.shuffle(deck);
+    }
 
     public void shuffleDiscard(){
         deck.addAll(discardList);
@@ -37,7 +44,7 @@ public class Deck {
     public boolean isEmpty(){return size() == 0;}
 
 
-    public void addCard(Card card){
+    public void addCard(C card){
         deck.add(card);
     }
 }

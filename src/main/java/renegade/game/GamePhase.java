@@ -3,9 +3,10 @@ package renegade.game;
 public enum GamePhase {
     GAMEOVER,
     SETUP,
-    START_ROUND,
+    INTEL,
     COMMANDS,
-    END_ROUND;
+    COUNTERMEASURES,
+    REFRESH;
 
     GamePhase() {
 

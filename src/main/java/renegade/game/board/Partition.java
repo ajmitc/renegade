@@ -3,11 +3,13 @@ package renegade.game.board;
 import renegade.game.Avatar;
 import renegade.game.Containment;
 import renegade.game.Countermeasure;
+import renegade.game.Server;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Partition {
+    private Server server;
     private int number;
     private List<Containment> containments = new ArrayList<>();
     private List<Countermeasure> countermeasures = new ArrayList<>();
@@ -15,10 +17,23 @@ public class Partition {
 
     private int x, y;
 
-    public Partition(int number) {
+    public Partition(Server server, int number) {
+        this.server = server;
         this.number = number;
         this.x = 0;
         this.y = 0;
+    }
+
+    public int countContainments(final Containment containment){
+        return (int) containments.stream().filter(c -> c == containment).count();
+    }
+
+    public int countCountermeasures(final Countermeasure countermeasure){
+        return (int) countermeasures.stream().filter(c -> c == countermeasure).count();
+    }
+
+    public Server getServer() {
+        return server;
     }
 
     public int getNumber() {

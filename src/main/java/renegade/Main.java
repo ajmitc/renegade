@@ -4,7 +4,7 @@ import renegade.view.View;
 
 public class Main {
 
-    public Main() {
+    public static void main(String ... args) {
         Model model = new Model();
         View view = new View(model);
         new Controller(model, view);

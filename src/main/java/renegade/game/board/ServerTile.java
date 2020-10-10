@@ -1,11 +1,15 @@
 package renegade.game.board;
 
+import jdk.jshell.spi.SPIResolutionException;
+import renegade.game.Countermeasure;
 import renegade.game.Server;
 import renegade.view.ImageUtil;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class ServerTile {
     private Image image;
@@ -15,7 +19,7 @@ public class ServerTile {
     public ServerTile(Server server) {
         this.server = server;
         for (int i = 1; i <= 6; ++i)
-            partitions.add(new Partition(i));
+            partitions.add(new Partition(this.server, i));
         switch (this.server){
             case YELLOW:
                 image = ImageUtil.get("Map Yellow Front.png");
@@ -33,6 +37,61 @@ public class ServerTile {
                 image = ImageUtil.get("Map Violet Front.png");
                 break;
         }
+    }
+
+    public void moveSparks(boolean up){
+        if (up)
+            moveSparksUp();
+        else
+            moveSparksDown();
+    }
+
+    private void moveSparksUp(){
+        // Find lowest numbered partition with sparks
+        Optional<Partition> partition =
+                partitions.stream()
+                        .filter(p -> p.getCountermeasures().contains(Countermeasure.SPARK))
+                        .sorted(new Comparator<Partition>() {
+                            @Override
+                            public int compare(Partition o1, Partition o2) {
+                                return o1.getNumber() < o2.getNumber()? -1: o1.getNumber() > o2.getNumber()? 1: 0;
+                            }
+                        })
+                        .findFirst();
+        if (!partition.isPresent())
+            return;
+        // Move those sparks up one partition
+        int numSparks = partition.get().countCountermeasures(Countermeasure.SPARK);
+        int nextPartitionNumber = (partition.get().getNumber() + 1) % 6;
+        Partition nextPartition = getPartition(nextPartitionNumber);
+        while (partition.get().getCountermeasures().contains(Countermeasure.SPARK))
+            partition.get().getCountermeasures().remove(Countermeasure.SPARK);
+        for (int i = 0; i < numSparks; ++i)
+            nextPartition.getCountermeasures().add(Countermeasure.SPARK);
+    }
+
+    private void moveSparksDown(){
+        // Find highest numbered partition with sparks
+        Optional<Partition> partition =
+                partitions.stream()
+                        .filter(p -> p.getCountermeasures().contains(Countermeasure.SPARK))
+                        .sorted(new Comparator<Partition>() {
+                            @Override
+                            public int compare(Partition o1, Partition o2) {
+                                return o1.getNumber() > o2.getNumber()? -1: o1.getNumber() < o2.getNumber()? 1: 0;
+                            }
+                        })
+                        .findFirst();
+        if (!partition.isPresent())
+            return;
+        // Move those sparks down one partition
+        int numSparks = partition.get().countCountermeasures(Countermeasure.SPARK);
+        int nextPartitionNumber = partition.get().getNumber() == 1? 6: partition.get().getNumber() - 1;
+        Partition nextPartition = getPartition(nextPartitionNumber);
+        while (partition.get().getCountermeasures().contains(Countermeasure.SPARK))
+            partition.get().getCountermeasures().remove(Countermeasure.SPARK);
+        for (int i = 0; i < numSparks; ++i)
+            nextPartition.getCountermeasures().add(Countermeasure.SPARK);
     }
 
     /**
