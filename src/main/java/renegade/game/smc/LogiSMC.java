@@ -1,10 +1,8 @@
 package renegade.game.smc;
 
-import renegade.game.Containment;
-import renegade.game.Countermeasure;
-import renegade.game.Game;
-import renegade.game.Server;
+import renegade.game.*;
 import renegade.game.board.Partition;
+import renegade.view.PopupUtil;
 
 import java.util.Comparator;
 
@@ -21,8 +19,8 @@ public class LogiSMC extends SMC{
         game.getBoard().getServerTiles().stream().forEach(st -> {
             st.getPartitions().stream().forEach(p -> {
                 if (game.getBoard().getNeighbors(p).size() == 6){
-                    p.getCountermeasures().add(Countermeasure.SPARK);
-                    p.getCountermeasures().add(Countermeasure.SPARK);
+                    game.getBoard().addSpark(p);
+                    game.getBoard().addSpark(p);
                 }
             });
         });
@@ -30,7 +28,7 @@ public class LogiSMC extends SMC{
         game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream()
                 .filter(p -> p.getNumber() % 2 == 1)
                 .forEach(p -> {
-                    p.getCountermeasures().add(Countermeasure.SPARK);
+                    game.getBoard().addSpark(p);
                 });
     }
 
@@ -39,12 +37,12 @@ public class LogiSMC extends SMC{
         // Place flare on highest numbered partition on player's server with A) No guardian and B) fewest viruses
         Partition partition =
                 game.getBoard().getServerTile(game.getCurrentPlayer().getServer()).getPartitions().stream()
-                        .filter(p -> p.countCountermeasures(Countermeasure.GUARDIAN) == 0)
+                        .filter(p -> p.countCountermeasures(CountermeasureType.GUARDIAN) == 0)
                         .sorted(new Comparator<Partition>() {
                             @Override
                             public int compare(Partition o1, Partition o2) {
-                                int numViruses1 = o1.countContainments(Containment.VIRUS);
-                                int numViruses2 = o2.countContainments(Containment.VIRUS);
+                                int numViruses1 = o1.countContaminants(ContaminantType.VIRUS);
+                                int numViruses2 = o2.countContaminants(ContaminantType.VIRUS);
                                 if (numViruses1 < numViruses2)
                                     return -1;
                                 if (numViruses1 > numViruses2)
@@ -53,6 +51,9 @@ public class LogiSMC extends SMC{
                             }
                         })
                         .findFirst().get();
-        partition.getCountermeasures().add(Countermeasure.FLARE);
+        if (!game.getBoard().addCountermeasure(CountermeasureType.FLARE, partition)){
+            PopupUtil.popupNotification(null, "Game Over", "Unable to place flare (no tokens left)!  Game Over!");
+            game.setPhase(GamePhase.GAMEOVER);
+        }
     }
 }

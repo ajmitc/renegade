@@ -1,7 +1,9 @@
 package renegade.game.smc;
 
 import renegade.game.*;
+import renegade.game.board.Partition;
 import renegade.view.ImageUtil;
+import renegade.view.PopupUtil;
 
 import java.awt.*;
 
@@ -27,7 +29,7 @@ public class SMC {
         this.numSilverCountermeasures = silverCM;
         this.numGoldCountermeasures = goldCM;
         this.moveSparks = true;
-        image = ImageUtil.get(filename, SMC_CARD_WIDTH, null);
+        image = ImageUtil.get(filename, SMC_CARD_WIDTH);
     }
 
     public void setup(Game game){
@@ -57,8 +59,12 @@ public class SMC {
     public void placeStartOfTurnCountermeasure(Game game){
         // Roll server die and 1d6
         Server server = GameUtil.getRandomServer();
-        int partition = GameUtil.getRandomPartition();
-        game.getBoard().getServerTile(server).getPartition(partition).getCountermeasures().add(Countermeasure.SPARK);
+        int partitionNum = GameUtil.getRandomPartition();
+        Partition partition = game.getBoard().getServerTile(server).getPartition(partitionNum);
+        if (!game.getBoard().addCountermeasure(CountermeasureType.SPARK, partition)){
+            PopupUtil.popupNotification(null, "Game Over", "Unable to add spark (no spark tokens left).  Game Over.");
+            game.setPhase(GamePhase.GAMEOVER);
+        }
     }
 
     public void endOfTurn(Game game){}

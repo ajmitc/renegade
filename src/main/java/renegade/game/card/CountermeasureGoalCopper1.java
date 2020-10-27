@@ -15,12 +15,12 @@ public class CountermeasureGoalCopper1 extends CountermeasureGoalCard{
     public boolean goalSatisfied(Game game) {
         if (!game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream()
                 .filter(p -> p.getNumber() <= 4)
-                .allMatch(p -> p.getContainments().contains(Containment.DATA_NODE) || p.getContainments().contains(Containment.DATA_PORT)))
+                .allMatch(p -> p.countContaminants(ContaminantType.DATA_NODE) > 0 || p.countContaminants(ContaminantType.DATA_PORT) > 0))
             return false;
         if (!game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream()
                 .filter(p -> p.getNumber() <= game.getAvatars().size())
-                .allMatch(p -> p.countContainments(Containment.DATA_NODE) >= 2 ||
-                        (p.getContainments().contains(Containment.DATA_NODE) || p.getContainments().contains(Containment.DATA_PORT))))
+                .allMatch(p -> p.countContaminants(ContaminantType.DATA_NODE) >= 2 ||
+                        (p.countContaminants(ContaminantType.DATA_NODE) > 0 || p.countContaminants(ContaminantType.DATA_PORT) > 0)))
             return false;
         setSuccess(true);
         return true;
@@ -31,8 +31,8 @@ public class CountermeasureGoalCopper1 extends CountermeasureGoalCard{
         if (!isResolved())
             return;
         // Add one data port and one virus to Faith
-        game.getContainmentPlacements().add(new ContainmentPlacement(Containment.DATA_PORT, Server.PURPLE));
-        game.getContainmentPlacements().add(new ContainmentPlacement(Containment.VIRUS, Server.PURPLE));
+        game.getContaminantPlacements().add(new ContaminantPlacement(ContaminantType.DATA_PORT, Server.PURPLE));
+        game.getContaminantPlacements().add(new ContaminantPlacement(ContaminantType.VIRUS, Server.PURPLE));
 
         game.setPhaseStep(GamePhaseStep.COUNTERMEASURES_SUCCESS_FAILURE_PLACE);
         setResolved(true);
@@ -44,9 +44,9 @@ public class CountermeasureGoalCopper1 extends CountermeasureGoalCard{
             return;
         // Add one spark to every partition on Faith without a data node/port
         game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream()
-                .filter(p -> !p.getContainments().contains(Containment.DATA_PORT) && !p.getContainments().contains(Containment.DATA_NODE))
+                .filter(p -> p.countContaminants(ContaminantType.DATA_PORT) == 0 && p.countContaminants(ContaminantType.DATA_NODE) == 0)
                 .forEach(p -> {
-                    p.getCountermeasures().add(Countermeasure.SPARK);
+                    game.getBoard().addSpark(p);
                 });
         setResolved(true);
     }

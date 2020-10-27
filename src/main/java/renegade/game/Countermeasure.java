@@ -1,12 +1,27 @@
 package renegade.game;
 
-public enum Countermeasure {
-    SPARK,
-    FLARE,
-    GUARDIAN,
-    FIREWALL;
+public class Countermeasure {
+    private CountermeasureType type;
 
-    public boolean isInstallation(){
-        return this == GUARDIAN || this == FIREWALL;
+    public Countermeasure(CountermeasureType type){
+        this.type = type;
+    }
+
+    public void flip(){
+        switch (type){
+            case SPARK:
+                type = CountermeasureType.FLARE;
+                break;
+            case FLARE:
+                type = CountermeasureType.SPARK;
+                break;
+            case FIREWALL:
+            case GUARDIAN:
+                break;
+        }
+    }
+
+    public CountermeasureType getType() {
+        return type;
     }
 }

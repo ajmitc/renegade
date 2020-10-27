@@ -1,6 +1,6 @@
 package renegade.game.smc;
 
-import renegade.game.Countermeasure;
+import renegade.game.CountermeasureType;
 import renegade.game.Game;
 import renegade.game.GameUtil;
 import renegade.game.Server;
@@ -21,7 +21,7 @@ public class SpiderSMC extends SMC{
     public void setup(Game game) {
         super.setup(game);
         game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream().forEach(p -> {
-            p.getCountermeasures().add(Countermeasure.SPARK);
+            game.getBoard().addSpark(p);
         });
         game.getBoard().getServerTiles().stream()
                 .filter(st -> game.getAvatars().stream().map(a -> a.getServer()).anyMatch(s -> s == st.getServer()))
@@ -29,7 +29,7 @@ public class SpiderSMC extends SMC{
                     st.getPartitions().stream()
                             .filter(p -> p.getNumber() % 2 == 1)
                             .forEach(p -> {
-                                p.getCountermeasures().add(Countermeasure.SPARK);
+                                game.getBoard().addSpark(p);
                             });
                 });
     }
@@ -42,7 +42,7 @@ public class SpiderSMC extends SMC{
         int fewestSparks = Integer.MAX_VALUE;
         List<Partition> fewestSparkPartitions = new ArrayList<>();
         for (Partition partition : game.getBoard().getServerTile(server).getPartitions()) {
-            int numSparks = partition.countCountermeasures(Countermeasure.SPARK) + (partition.countCountermeasures(Countermeasure.GUARDIAN) * 3);
+            int numSparks = partition.countCountermeasures(CountermeasureType.SPARK) + (partition.countCountermeasures(CountermeasureType.GUARDIAN) * 3);
             if (numSparks < fewestSparks) {
                 fewestSparkPartitions.clear();
                 fewestSparkPartitions.add(partition);
@@ -58,7 +58,7 @@ public class SpiderSMC extends SMC{
             }
         }).findFirst().get();
 
-        lowestNumberedPartition.getCountermeasures().add(Countermeasure.SPARK);
+        game.getBoard().addSpark(lowestNumberedPartition);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class SpiderSMC extends SMC{
         game.getBoard().getServerTiles().stream().forEach(st -> {
             st.getPartitions().stream().forEach(p -> {
                 if (game.getBoard().getNeighbors(p).stream().allMatch(n -> !n.getCountermeasures().isEmpty())){
-                    p.getContainments().clear();
+                    p.getContaminants().clear();
                 }
             });
         });

@@ -1,12 +1,13 @@
-package renegade.game.card;
+package renegade.game.card.advanced;
 
-import renegade.game.Containment;
+import renegade.game.Server;
 import renegade.game.Game;
+import renegade.game.card.CommandCard;
 
 public class AdvancedCommandBlackMarket extends CommandCard {
 
     public AdvancedCommandBlackMarket() {
-        super("Command3.jpg", new Containment[]{Containment.ROOTKIT}, new Containment[]{Containment.ROOTKIT, Containment.ROOTKIT});
+        super("Command3.jpg", new Server[]{Server.PURPLE}, new Server[]{Server.PURPLE, Server.PURPLE});
     }
 
     @Override

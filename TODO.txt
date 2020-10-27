@@ -1,0 +1,2 @@
+Bugs
+- ContaminantSelectDialog doesn't size properly and need to highlight selected contaminants

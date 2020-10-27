@@ -1,7 +1,8 @@
 package renegade.game.card;
 
-import renegade.game.Containment;
+import renegade.game.Server;
 import renegade.game.Game;
+import renegade.game.Server;
 import renegade.view.ImageUtil;
 
 import java.awt.*;
@@ -9,24 +10,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandCard implements Card{
-    private Image image;
-    private List<Containment> cost = new ArrayList<>();
-    private List<Containment> commands = new ArrayList<>();
-    private boolean execute;
+    public static final int CARD_WIDTH = 175;
 
-    public CommandCard(String filename, Containment[] commands){
-        this(filename, false, new Containment[]{}, commands);
+    private String filename;
+    private Image fullSizeImage;
+    private Image image;
+    private List<Server> cost = new ArrayList<>();
+    private List<Server> commands = new ArrayList<>();
+    private boolean execute;
+    private boolean selected;
+    private boolean interrupt;
+    private boolean revealed;
+
+    public CommandCard(String filename, Server[] commands){
+        this(filename, false, new Server[]{}, commands);
     }
 
-    public CommandCard(String filename, Containment[] cost, Containment[] commands){
+    public CommandCard(String filename, Server[] cost, Server[] commands){
         this(filename, false, cost, commands);
     }
 
-    public CommandCard(String filename, boolean execute, Containment[] cost, Containment[] commands) {
-        image = ImageUtil.get(filename);
+    public CommandCard(String filename, boolean execute, Server[] cost, Server[] commands) {
+        this.filename = filename;
+        fullSizeImage = ImageUtil.get(filename, filename + "fullsize");
+        image = ImageUtil.get(filename, CARD_WIDTH);
         this.execute = execute;
         addCost(cost);
         addCommands(commands);
+        selected = false;
+        interrupt = false;
+        revealed = false;
     }
 
     public void doAlso(Game game){
@@ -37,29 +50,69 @@ public class CommandCard implements Card{
 
     }
 
+    public void doInterrupt(Game game){
+
+    }
+
+    public void doReveal(Game game){
+
+    }
+
     public Image getImage() {
         return image;
     }
 
-    public List<Containment> getCommands() {
+    public Image getFullSizeImage() {
+        return fullSizeImage;
+    }
+
+    public List<Server> getCommands() {
         return commands;
     }
 
-    public List<Containment> getCost() {
+    public List<Server> getCost() {
         return cost;
     }
 
-    public void addCost(Containment ... containments){
-        for (Containment containment: containments)
+    public void addCost(Server ... containments){
+        for (Server containment: containments)
             cost.add(containment);
     }
 
-    public void addCommands(Containment ... containments){
-        for (Containment containment: containments)
+    public void addCommands(Server ... containments){
+        for (Server containment: containments)
             commands.add(containment);
     }
 
     public boolean hasExecute() {
         return execute;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isInterrupt() {
+        return interrupt;
+    }
+
+    public void setInterrupt(boolean interrupt) {
+        this.interrupt = interrupt;
+    }
+
+    public boolean isRevealed() {
+        return revealed;
+    }
+
+    public void setRevealed(boolean revealed) {
+        this.revealed = revealed;
+    }
+
+    public String toString(){
+        return filename;
     }
 }

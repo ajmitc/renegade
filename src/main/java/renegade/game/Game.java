@@ -25,7 +25,7 @@ public class Game {
     private List<CommandCard> hackShackMarket = new ArrayList<>(4);
     private int score = 0;
 
-    private List<ContainmentPlacement> containmentPlacements = new ArrayList<>();
+    private List<ContaminantPlacement> contaminantPlacements = new ArrayList<>();
 
     public Game() {
         phase = GamePhase.SETUP;
@@ -35,9 +35,11 @@ public class Game {
 
     public void setupAvatars(){
         // Place avatars on board
+        // Place a containment matching their color on partition 6
         avatars.stream().forEach(avatar -> {
             board.getServerTiles().stream().filter(st -> st.getServer() == avatar.getServer()).forEach(st -> {
                 st.getPartition(6).getAvatars().add(avatar);
+                board.addContaminant(ContaminantType.ofServer(st.getServer()), st.getPartition(6));
             });
         });
     }
@@ -165,8 +167,8 @@ public class Game {
         return hackShackMarket;
     }
 
-    public List<ContainmentPlacement> getContainmentPlacements() {
-        return containmentPlacements;
+    public List<ContaminantPlacement> getContaminantPlacements() {
+        return contaminantPlacements;
     }
 
     public int getScore() {

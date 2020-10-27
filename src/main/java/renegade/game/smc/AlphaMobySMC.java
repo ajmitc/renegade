@@ -1,9 +1,7 @@
 package renegade.game.smc;
 
-import renegade.game.Avatar;
-import renegade.game.Countermeasure;
-import renegade.game.Game;
-import renegade.game.Server;
+import renegade.game.*;
+import renegade.view.PopupUtil;
 
 public class AlphaMobySMC extends SMC {
 
@@ -16,11 +14,11 @@ public class AlphaMobySMC extends SMC {
         super.setup(game);
         // Add spark to Faith partitions
         game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream().forEach(p -> {
-            p.getCountermeasures().add(Countermeasure.SPARK);
+            game.getBoard().addSpark(p);
         });
         // Add spark to player's access points
         game.getBoard().getServerTiles().stream().forEach(st -> {
-            st.getPartitions().stream().filter(p -> !p.getAvatars().isEmpty()).forEach(p -> p.getCountermeasures().add(Countermeasure.SPARK));
+            st.getPartitions().stream().filter(p -> !p.getAvatars().isEmpty()).forEach(p -> game.getBoard().addSpark(p));
         });
     }
 
@@ -28,6 +26,9 @@ public class AlphaMobySMC extends SMC {
     public void placeStartOfTurnCountermeasure(Game game) {
         // Add spark to current player's partition
         Avatar player = game.getCurrentPlayer();
-        game.getBoard().getPlayerPartition(player).getCountermeasures().add(Countermeasure.SPARK);
+        if (game.getBoard().addSpark(game.getBoard().getPlayerPartition(player))){
+            PopupUtil.popupNotification(null, "Game Over", "Cannot place spark (no tokens left)!  Game Over!");
+            game.setPhase(GamePhase.GAMEOVER);
+        }
     }
 }

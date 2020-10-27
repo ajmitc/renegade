@@ -1,7 +1,7 @@
 package renegade.game.board;
 
-import jdk.jshell.spi.SPIResolutionException;
 import renegade.game.Countermeasure;
+import renegade.game.CountermeasureType;
 import renegade.game.Server;
 import renegade.view.ImageUtil;
 
@@ -15,6 +15,7 @@ public class ServerTile {
     private Image image;
     private Server server;
     private List<Partition> partitions = new ArrayList<>(6);
+    private boolean placed = false;
 
     public ServerTile(Server server) {
         this.server = server;
@@ -39,61 +40,6 @@ public class ServerTile {
         }
     }
 
-    public void moveSparks(boolean up){
-        if (up)
-            moveSparksUp();
-        else
-            moveSparksDown();
-    }
-
-    private void moveSparksUp(){
-        // Find lowest numbered partition with sparks
-        Optional<Partition> partition =
-                partitions.stream()
-                        .filter(p -> p.getCountermeasures().contains(Countermeasure.SPARK))
-                        .sorted(new Comparator<Partition>() {
-                            @Override
-                            public int compare(Partition o1, Partition o2) {
-                                return o1.getNumber() < o2.getNumber()? -1: o1.getNumber() > o2.getNumber()? 1: 0;
-                            }
-                        })
-                        .findFirst();
-        if (!partition.isPresent())
-            return;
-        // Move those sparks up one partition
-        int numSparks = partition.get().countCountermeasures(Countermeasure.SPARK);
-        int nextPartitionNumber = (partition.get().getNumber() + 1) % 6;
-        Partition nextPartition = getPartition(nextPartitionNumber);
-        while (partition.get().getCountermeasures().contains(Countermeasure.SPARK))
-            partition.get().getCountermeasures().remove(Countermeasure.SPARK);
-        for (int i = 0; i < numSparks; ++i)
-            nextPartition.getCountermeasures().add(Countermeasure.SPARK);
-    }
-
-    private void moveSparksDown(){
-        // Find highest numbered partition with sparks
-        Optional<Partition> partition =
-                partitions.stream()
-                        .filter(p -> p.getCountermeasures().contains(Countermeasure.SPARK))
-                        .sorted(new Comparator<Partition>() {
-                            @Override
-                            public int compare(Partition o1, Partition o2) {
-                                return o1.getNumber() > o2.getNumber()? -1: o1.getNumber() < o2.getNumber()? 1: 0;
-                            }
-                        })
-                        .findFirst();
-        if (!partition.isPresent())
-            return;
-        // Move those sparks down one partition
-        int numSparks = partition.get().countCountermeasures(Countermeasure.SPARK);
-        int nextPartitionNumber = partition.get().getNumber() == 1? 6: partition.get().getNumber() - 1;
-        Partition nextPartition = getPartition(nextPartitionNumber);
-        while (partition.get().getCountermeasures().contains(Countermeasure.SPARK))
-            partition.get().getCountermeasures().remove(Countermeasure.SPARK);
-        for (int i = 0; i < numSparks; ++i)
-            nextPartition.getCountermeasures().add(Countermeasure.SPARK);
-    }
-
     /**
      * Set the partition coordinates given the coordinate of partition 6
      * @param x
@@ -101,79 +47,85 @@ public class ServerTile {
      */
     public void setPartitionLocations(int x, int y){
         partitions.get(5).setCoords(x, y);
+        boolean odd = x % 2 == 1;
         switch (server){
             case RED:
                 /*
-                 *     x-1  x  x+1
-                 * y-1      5
-                 * y-1          4
-                 * y        6
-                 * y    1       3
-                 * y+1      2
+                 *     x-1  x  x+1          x-1  x  x+1
+                 * y-1      5           y-1      5
+                 * y-1          4       y            4
+                 * y        6           y        6
+                 * y    1       3       y+1  1       3
+                 * y+1      2           y+1      2
                  */
-                partitions.get(0).setCoords(x - 1, y);
+                partitions.get(0).setCoords(x - 1, odd? y: y + 1);
                 partitions.get(1).setCoords(x, y + 1);
-                partitions.get(2).setCoords(x + 1, y);
-                partitions.get(3).setCoords(x + 1, y - 1);
+                partitions.get(2).setCoords(x + 1, odd? y: y + 1);
+                partitions.get(3).setCoords(x + 1, odd? y - 1: y);
                 partitions.get(4).setCoords(x, y - 1);
                 break;
             case BLUE:
                 /*
-                 *     x-1  x  x+1
-                 * y-1      3
-                 * y-1  4       2
-                 * y        6
-                 * y    5       1
+                 *     x-1  x  x+1       x-1  x  x+1
+                 * y-1      3        y-1      3
+                 * y-1  4       2    y    4       2
+                 * y        6        y        6
+                 * y    5       1    y+1  5       1
                  */
-                partitions.get(0).setCoords(x + 1, y);
-                partitions.get(1).setCoords(x + 1, y - 1);
+
+                partitions.get(0).setCoords(x + 1, odd? y: y + 1);
+                partitions.get(1).setCoords(x + 1, odd? y - 1: y);
                 partitions.get(2).setCoords(x, y - 1);
-                partitions.get(3).setCoords(x - 1, y - 1);
-                partitions.get(4).setCoords(x - 1, y);
+                partitions.get(3).setCoords(x - 1, odd? y - 1: y);
+                partitions.get(4).setCoords(x - 1, odd? y: y + 1);
                 break;
             case GREEN:
                 /*
-                 *        4
-                 *    5       3
-                 *        6
-                 *            2
-                 *        1
+                 *     x-1  x  x+1       x-1  x  x+1
+                 * y-1      4        y-1      4
+                 * y-1  5       3    y    5       3
+                 * y        6        y        6
+                 * y            2    y+1          2
+                 * y+1      1        y+1      1
                  */
-                partitions.get(0).setCoords(x, y);
-                partitions.get(1).setCoords(x, y);
-                partitions.get(2).setCoords(x, y);
-                partitions.get(3).setCoords(x, y);
-                partitions.get(4).setCoords(x, y);
+                partitions.get(0).setCoords(x, y + 1);
+                partitions.get(1).setCoords(x + 1, odd? y: y + 1);
+                partitions.get(2).setCoords(x + 1, odd? y - 1: y);
+                partitions.get(3).setCoords(x, y - 1);
+                partitions.get(4).setCoords(x - 1, odd? y - 1: y);
                 break;
             case PURPLE:
                 /*
-                 *
-                 *    1       5
-                 *        6
-                 *    2       4
-                 *        3
+                 *     x-1  x  x+1        x-1  x  x+1
+                 * y-1                y-1
+                 * y-1  1       5     y    1       5
+                 * y        6         y        6
+                 * y    2       4     y+1  2       4
+                 * y+1      3         y+1      3
                  */
-                partitions.get(0).setCoords(x, y);
-                partitions.get(1).setCoords(x, y);
-                partitions.get(2).setCoords(x, y);
-                partitions.get(3).setCoords(x, y);
-                partitions.get(4).setCoords(x, y);
+                partitions.get(0).setCoords(x - 1, odd? y - 1: y);
+                partitions.get(1).setCoords(x - 1, odd? y: y + 1);
+                partitions.get(2).setCoords(x, y + 1);
+                partitions.get(3).setCoords(x + 1, odd? y: y + 1);
+                partitions.get(4).setCoords(x + 1, odd? y - 1: y);
                 break;
             case YELLOW:
                 /*
-                 *        2
-                 *    3       1
-                 *        6
-                 *    4
-                 *        5
+                 *     x-1  x  x+1       x-1  x  x+1
+                 * y-1      2        y-1      2
+                 * y-1  3       1    y    3       1
+                 * y        6        y        6
+                 * y    4            y+1  4
+                 * y+1      5        y+1      5
                  */
-                partitions.get(0).setCoords(x, y);
-                partitions.get(1).setCoords(x, y);
-                partitions.get(2).setCoords(x, y);
-                partitions.get(3).setCoords(x, y);
-                partitions.get(4).setCoords(x, y);
+                partitions.get(0).setCoords(x + 1, odd? y - 1: y);
+                partitions.get(1).setCoords(x, y - 1);
+                partitions.get(2).setCoords(x + 1, odd? y - 1: y);
+                partitions.get(3).setCoords(x - 1, odd? y: y + 1);
+                partitions.get(4).setCoords(x, y + 1);
                 break;
         }
+        setPlaced(true);
     }
 
     public Server getServer() {
@@ -190,5 +142,23 @@ public class ServerTile {
 
     public Image getImage() {
         return image;
+    }
+
+    public boolean isPlaced() {
+        return placed;
+    }
+
+    public void setPlaced(boolean placed) {
+        this.placed = placed;
+    }
+
+    public int getPartition6YOffset(){
+        if (server == Server.BLUE){
+            return image.getHeight(null) / 2 + 39;
+        }
+        if (server == Server.PURPLE){
+            return image.getHeight(null) / 2 - 39;
+        }
+        return image.getHeight(null) / 2;
     }
 }

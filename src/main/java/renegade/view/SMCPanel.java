@@ -1,7 +1,6 @@
 package renegade.view;
 
 import renegade.Model;
-import renegade.game.Countermeasure;
 import renegade.game.card.CountermeasureGoalCard;
 import renegade.game.smc.SMC;
 
@@ -30,6 +29,7 @@ public class SMCPanel extends JPanel {
         g.drawImage(smcImage, 0, 0, null);
 
         List<CountermeasureGoalCard> goals = model.getGame().getCountermeasureGoals(model.getGame().getSecurityLevel());
-        g.drawImage(goals.get(0).getImageFront(), 0, smcImage.getHeight(null), null);
+        if (goals != null && !goals.isEmpty())
+            g.drawImage(goals.get(0).getImageFront(), 0, smcImage.getHeight(null), null);
     }
 }

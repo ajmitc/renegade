@@ -39,11 +39,11 @@ public abstract class CountermeasureGoalCard implements Card{
     }
 
     public Image getImageFront(){
-        return ImageUtil.get(filenameFront, SMC.SMC_CARD_WIDTH, null);
+        return ImageUtil.get(filenameFront, SMC.SMC_CARD_WIDTH);
     }
 
     public Image getImageBack(){
-        return ImageUtil.get(filenameBack, SMC.SMC_CARD_WIDTH, null);
+        return ImageUtil.get(filenameBack, SMC.SMC_CARD_WIDTH);
     }
 
     public boolean isResolved() {

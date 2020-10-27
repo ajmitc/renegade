@@ -14,10 +14,14 @@ public class ImageUtil {
     private static Map<String, Image> cache = new HashMap<>();
 
     public static Image get(String name, Integer w, Integer h){
-        if (cache.containsKey(name))
-            return cache.get(name);
+        return get(name, w, h, name);
+    }
+
+    public static Image get(String filename, Integer w, Integer h, String key){
+        if (cache.containsKey(key))
+            return cache.get(key);
         try {
-            Image bi = ImageIO.read(ImageUtil.class.getClassLoader().getResourceAsStream(IMAGE_DIR + name));
+            Image bi = ImageIO.read(ImageUtil.class.getClassLoader().getResourceAsStream(IMAGE_DIR + filename));
             if (w != null || h != null){
                 int iw = bi.getWidth(null);
                 int ih = bi.getHeight(null);
@@ -31,21 +35,29 @@ public class ImageUtil {
                 }
                 bi = bi.getScaledInstance(w, h, BufferedImage.SCALE_SMOOTH);
             }
-            cache.put(name, bi);
+            cache.put(key, bi);
             return bi;
         }
         catch (Exception e){
-            logger.severe("Unable to load image '" + IMAGE_DIR + name + "': " + e);
+            logger.severe("Unable to load image '" + IMAGE_DIR + filename + "': " + e);
         }
         return null;
     }
 
     public static Image get(String name){
-        return get(name, null, null);
+        return get(name, null, null, name);
     }
 
     public static Image get(String name, Integer w){
-        return get(name, w, null);
+        return get(name, w, null, name);
+    }
+
+    public static Image get(String name, Integer w, String key){
+        return get(name, w, null, key);
+    }
+
+    public static Image get(String filename, String key){
+        return get(filename, null, null, key);
     }
 
     private ImageUtil(){}

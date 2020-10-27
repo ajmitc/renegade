@@ -1,6 +1,6 @@
 package renegade.game.smc;
 
-import renegade.game.Countermeasure;
+import renegade.game.CountermeasureType;
 import renegade.game.Game;
 import renegade.game.GameUtil;
 import renegade.game.Server;
@@ -22,13 +22,13 @@ public class VikingSMC extends SMC{
         game.getBoard().getServerTile(Server.PURPLE).getPartitions().stream()
                 .filter(p -> p.getNumber() % 2 == 1)
                 .forEach(p -> {
-                    p.getCountermeasures().add(Countermeasure.SPARK);
+                    game.getBoard().addSpark(p);
                 });
         game.getBoard().getServerTiles().stream().forEach(st -> {
             st.getPartitions().stream()
                     .filter(p -> p.getNumber() % 2 == 1 && game.getBoard().getNeighbors(p).size() < 6)
                     .forEach(p -> {
-                        p.getCountermeasures().add(Countermeasure.SPARK);
+                        game.getBoard().addSpark(p);
                     });
         });
     }
@@ -38,11 +38,11 @@ public class VikingSMC extends SMC{
         Server server = GameUtil.getRandomServer();
         int partitionNum = GameUtil.getRandomPartition();
         Partition partition = game.getBoard().getServerTile(server).getPartition(partitionNum);
-        if (partition.countCountermeasures(Countermeasure.SPARK) + partition.countCountermeasures(Countermeasure.GUARDIAN) == 0){
+        if (partition.countCountermeasures(CountermeasureType.SPARK) + partition.countCountermeasures(CountermeasureType.GUARDIAN) == 0){
             // Find highest numbered neighbor with spark.  If ties, add spark to all
             List<Partition> targetPartitions =
                     game.getBoard().getNeighbors(partition).stream()
-                            .filter(n -> n.countCountermeasures(Countermeasure.SPARK) > 0)
+                            .filter(n -> n.countCountermeasures(CountermeasureType.SPARK) > 0)
                             .sorted(new Comparator<Partition>() {
                                 @Override
                                 public int compare(Partition o1, Partition o2) {
@@ -54,12 +54,12 @@ public class VikingSMC extends SMC{
                 int maxNumber = targetPartitions.get(0).getNumber();
                 targetPartitions = targetPartitions.stream().filter(p -> p.getNumber() == maxNumber).collect(Collectors.toList());
                 for (Partition tp: targetPartitions){
-                    tp.getCountermeasures().add(Countermeasure.SPARK);
+                    game.getBoard().addSpark(tp);
                 }
             }
         }
         else {
-            partition.getCountermeasures().add(Countermeasure.SPARK);
+            game.getBoard().addSpark(partition);
         }
     }
 }

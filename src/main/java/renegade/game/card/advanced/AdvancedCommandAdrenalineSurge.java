@@ -1,12 +1,13 @@
-package renegade.game.card;
+package renegade.game.card.advanced;
 
-import renegade.game.Containment;
+import renegade.game.Server;
 import renegade.game.Game;
+import renegade.game.card.CommandCard;
 
 public class AdvancedCommandAdrenalineSurge extends CommandCard {
 
     public AdvancedCommandAdrenalineSurge() {
-        super("Command1.jpg", new Containment[]{Containment.UPLINK}, new Containment[]{Containment.UPLINK, Containment.UPLINK});
+        super("Command1.jpg", new Server[]{Server.GREEN}, new Server[]{Server.GREEN, Server.GREEN});
     }
 
     @Override
