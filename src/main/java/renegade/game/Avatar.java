@@ -17,27 +17,61 @@ public class Avatar {
     private Server server;
     private List<CommandCard> hand = new ArrayList<>();
     private CommandDeck deck;
-    private Image image;
+    private Image tokenImage;
+    private Image matImage;
 
     public Avatar(Server server) {
+        this(server, true);
+    }
+
+    public Avatar(Server server, boolean primary) {
         this.server = server;
         deck = new CommandDeck(server);
 
         switch (server){
             case RED:
-                image = ImageUtil.get("Player Token Red 1.png");
+                if (primary) {
+                    tokenImage = ImageUtil.get("Player Token Red 1.png");
+                    matImage   = ImageUtil.get("Red Player Board2.jpg");
+                }
+                else {
+                    tokenImage = ImageUtil.get("Player Token Red 2.png");
+                    matImage   = ImageUtil.get("Red Player Board1.jpg");
+                }
                 break;
             case BLUE:
-                image = ImageUtil.get("Player Token Blue 2.png");
+                if (primary) {
+                    tokenImage = ImageUtil.get("Player Token Blue 2.png");
+                    matImage = ImageUtil.get("Blue Player Board1.jpg");
+                }
+                else {
+                    tokenImage = ImageUtil.get("Player Token Blue 1.png");
+                    matImage = ImageUtil.get("Blue Player Board2.jpg");
+                }
                 break;
             case GREEN:
-                image = ImageUtil.get("Player Token Green 1.png");
+                if (primary) {
+                    tokenImage = ImageUtil.get("Player Token Green 1.png");
+                    matImage   = ImageUtil.get("Green Player Board2.jpg");
+                }
+                else {
+                    tokenImage = ImageUtil.get("Player Token Green 2.png");
+                    matImage   = ImageUtil.get("Green Player Board1.jpg");
+                }
                 break;
             case PURPLE:
-                image = ImageUtil.get("Player Token Violet 1.png");
+                tokenImage = ImageUtil.get("Player Token Violet 1.png");
+                matImage   = ImageUtil.get("Violet Player Board2.jpg");
                 break;
             case YELLOW:
-                image = ImageUtil.get("Player Token Yellow 2.png");
+                if (primary) {
+                    tokenImage = ImageUtil.get("Player Token Yellow 2.png");
+                    matImage   = ImageUtil.get("Yellow Player Board1.jpg");
+                }
+                else {
+                    tokenImage = ImageUtil.get("Player Token Yellow 1.png");
+                    matImage   = ImageUtil.get("Yellow Player Board2.jpg");
+                }
                 break;
         }
     }
@@ -81,7 +115,11 @@ public class Avatar {
         return hand;
     }
 
-    public Image getImage() {
-        return image;
+    public Image getTokenImage() {
+        return tokenImage;
+    }
+
+    public Image getMatImage() {
+        return matImage;
     }
 }

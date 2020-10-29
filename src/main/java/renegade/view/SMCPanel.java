@@ -25,11 +25,19 @@ public class SMCPanel extends JPanel {
         super.paintComponent(g);
         if (model.getGame() == null || model.getGame().getSmc() == null)
             return;
-        Image smcImage = model.getGame().getSmc().getImage();
-        g.drawImage(smcImage, 0, 0, null);
+        int y = 0;
 
         List<CountermeasureGoalCard> goals = model.getGame().getCountermeasureGoals(model.getGame().getSecurityLevel());
-        if (goals != null && !goals.isEmpty())
-            g.drawImage(goals.get(0).getImageFront(), 0, smcImage.getHeight(null), null);
+        if (goals != null && !goals.isEmpty()) {
+            g.drawImage(goals.get(0).getImageFront(), 0, y, null);
+            y += goals.get(0).getImageFront().getHeight(null);
+        }
+
+        Image smcImage = model.getGame().getSmc().getImage();
+        g.drawImage(smcImage, 0, y, null);
+    }
+
+    public void refresh(){
+        repaint();
     }
 }

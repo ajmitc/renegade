@@ -126,8 +126,11 @@ public class HackShackDialog extends JDialog {
                         // TODO Ask player which card to remove from game
                         CommandCard removed = selectedCards.getCards().remove(0);
                         model.getGame().getCurrentPlayer().getHand().remove(removed);
+                        view.getGamePanel().getLogPanel().writeln("Removed card from game");
                         // Discard others
                         model.getGame().getCurrentPlayer().discardFromHand(selectedCards);
+                        if (!selectedCards.getCards().isEmpty())
+                            view.getGamePanel().getLogPanel().writeln("Discarded " + selectedCards.getCards().size() + " cards");
                     }
                     model.getGame().getCurrentPlayer().getHand().add(advancedCard);
                     model.getGame().getHackShackMarket().remove(advancedCard);

@@ -111,7 +111,9 @@ public class Game {
     }
 
     public Avatar getCurrentPlayer() {
-        return avatars.get(currentPlayerIndex);
+        if (currentPlayerIndex >= 0 && currentPlayerIndex < avatars.size())
+            return avatars.get(currentPlayerIndex);
+        return null;
     }
 
     public void nextPlayer() {

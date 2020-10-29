@@ -23,12 +23,12 @@ public class Partition {
         this.y = 0;
     }
 
-    public int countContaminants(final ContaminantType contaminant){
-        return (int) contaminants.stream().filter(c -> c.getType() == contaminant).count();
+    public int countContaminants(final ContaminantType ... contaminantTypes){
+        return (int) contaminants.stream().filter(c -> Arrays.stream(contaminantTypes).anyMatch(ct -> ct == c.getType())).count();
     }
 
-    public int countCountermeasures(final CountermeasureType countermeasure){
-        return (int) countermeasures.stream().filter(c -> c.getType() == countermeasure).count();
+    public int countCountermeasures(final CountermeasureType ... countermeasureTypes){
+        return (int) countermeasures.stream().filter(c -> Arrays.stream(countermeasureTypes).anyMatch(ct -> ct == c.getType())).count();
     }
 
     public int countUniqueContaminants(){
@@ -56,10 +56,29 @@ public class Partition {
         getCountermeasures().add(countermeasure);
     }
 
+    /**
+     * Be sure to return the Countermeasure to the pool!
+     * @param type
+     * @return
+     */
     public Countermeasure removeCountermeasure(CountermeasureType type){
         Optional<Countermeasure> opt = countermeasures.stream().filter(c -> c.getType() == type).findFirst();
         if (opt.isPresent()){
             countermeasures.remove(opt.get());
+            return opt.get();
+        }
+        return null;
+    }
+
+    /**
+     * Be sure to return the Contaminant to the pool!
+     * @param type
+     * @return
+     */
+    public Contaminant removeContaminant(ContaminantType type){
+        Optional<Contaminant> opt = contaminants.stream().filter(c -> c.getType() == type).findFirst();
+        if (opt.isPresent()){
+            contaminants.remove(opt.get());
             return opt.get();
         }
         return null;
@@ -72,6 +91,8 @@ public class Partition {
     public int getNumber() {
         return number;
     }
+
+    public boolean hasContaminants(){ return !contaminants.isEmpty(); }
 
     public List<Contaminant> getContaminants() {
         return contaminants;

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /*      x  x+1 x+2
  * y        5
@@ -112,6 +113,24 @@ public class Board {
         return null;
     }
 
+    /**
+     * Be sure to return Contaminant to Pool!
+     * @param server
+     * @return
+     */
+    public Contaminant getContaminant(Server server){
+        return tokenPool.getContaminant(ContaminantType.ofServer(server));
+    }
+
+    /**
+     * Be sure to return Contaminant to Pool!
+     * @param server
+     * @return
+     */
+    public Contaminant getInstallation(Server server){
+        return tokenPool.getContaminant(ContaminantType.installationOfServer(server));
+    }
+
     public boolean addContaminant(Server color, Partition partition){
         return addContaminant(ContaminantType.ofServer(color), partition);
     }
@@ -203,7 +222,7 @@ public class Board {
             if (spark == null){
                 return false;
             }
-            destPartition.getCountermeasures().add(spark);
+            destPartition.addCountermeasure(spark);
         }
         else {
             // Add Guardian or Firewall
@@ -272,12 +291,62 @@ public class Board {
         return true;
     }
 
+    public void returnContaminantsToPool(List<Contaminant> contaminants){
+        contaminants.stream().forEach(c -> tokenPool.returnToPool(c));
+    }
+
+    public void returnCountermeasuresToPool(List<Countermeasure> countermeasures){
+        countermeasures.stream().forEach(c -> tokenPool.returnToPool(c));
+    }
+
     public void returnToPool(Contaminant contaminant){
         tokenPool.returnToPool(contaminant);
     }
 
     public void returnToPool(Countermeasure countermeasure){
         tokenPool.returnToPool(countermeasure);
+    }
+
+    public void removeFromPartition(ContaminantType contaminantType, Partition partition){
+        Contaminant contaminant = partition.removeContaminant(contaminantType);
+        if (contaminant != null)
+            returnToPool(contaminant);
+    }
+
+    public void removeFromPartition(CountermeasureType countermeasureType, Partition partition){
+        Countermeasure countermeasure = partition.removeCountermeasure(countermeasureType);
+        if (countermeasure != null)
+            returnToPool(countermeasure);
+    }
+
+    public void removeAllContaminantsFromPartition(Partition partition){
+        returnContaminantsToPool(partition.getContaminants());
+        partition.getContaminants().clear();
+    }
+
+    public void removeAllNonInstallationsFromPartition(Partition partition){
+        List<Contaminant> nonInstallations = partition.getContaminants().stream().filter(c -> !c.getType().isInstallation()).collect(Collectors.toList());
+        returnContaminantsToPool(nonInstallations);
+        partition.getContaminants().removeAll(nonInstallations);
+    }
+
+    public void removeAllCountermeasuresFromPartition(Partition partition){
+        returnCountermeasuresToPool(partition.getCountermeasures());
+        partition.getCountermeasures().clear();
+    }
+
+    public boolean moveContaminant(Contaminant contaminant, Partition fromPartition, Partition toPartition){
+        if (!fromPartition.getContaminants().remove(contaminant))
+            return false;
+        toPartition.getContaminants().add(contaminant);
+        return true;
+    }
+
+    public boolean moveCountermeasure(Countermeasure countermeasure, Partition fromPartition, Partition toPartition){
+        if (!fromPartition.getCountermeasures().remove(countermeasure))
+            return false;
+        toPartition.getCountermeasures().add(countermeasure);
+        return true;
     }
 
     public boolean moveSparks(ServerTile serverTile, boolean up){

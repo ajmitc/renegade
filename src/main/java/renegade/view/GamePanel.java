@@ -35,14 +35,23 @@ public class GamePanel extends JPanel {
         southpanel.setRightComponent(actionlogpanel);
         southpanel.setDividerLocation(handPanel.getPreferredSize().width);
 
-        add(new JScrollPane(boardPanel), BorderLayout.CENTER);
-        add(new JScrollPane(smcPanel), BorderLayout.EAST);
+        JScrollPane boardScrollPane = new JScrollPane(boardPanel);
+        boardScrollPane.getVerticalScrollBar().setBlockIncrement(BoardPanel.CELL_SIZE);
+        boardScrollPane.getVerticalScrollBar().setUnitIncrement(BoardPanel.CELL_SIZE);
+
+        JScrollPane smcScrollPane = new JScrollPane(smcPanel);
+        smcScrollPane.getVerticalScrollBar().setBlockIncrement(10);
+        smcScrollPane.getVerticalScrollBar().setUnitIncrement(10);
+
+        add(boardScrollPane, BorderLayout.CENTER);
+        add(smcScrollPane, BorderLayout.EAST);
         add(southpanel, BorderLayout.SOUTH);
     }
 
     public void refresh(){
         boardPanel.refresh();
         handPanel.refresh();
+        smcPanel.refresh();
     }
 
     public BoardPanel getBoardPanel() {

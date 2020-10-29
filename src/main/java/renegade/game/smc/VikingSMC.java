@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class VikingSMC extends SMC{
 
     public VikingSMC(){
-        super("Viking", 1, 1, 1, 1, 2, 2, "SMC.jpg");
+        super("Viking", 1, 1, 1, 1, 2, 2, "SMC6.jpg");
     }
 
     @Override

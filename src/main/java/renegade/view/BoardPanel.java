@@ -17,7 +17,7 @@ import java.util.List;
 public class BoardPanel extends JPanel {
     private static final int XOFFSET = 120;
     private static final int YOFFSET = 200;
-    private static final int CELL_SIZE = 100;
+    public static final int CELL_SIZE = 100;
     private static final int GRID_WIDTH = 15;
     private static final int GRID_HEIGHT = 15;
 
@@ -338,7 +338,7 @@ public class BoardPanel extends JPanel {
     private void drawAvatars(Graphics2D g, Partition partition){
         for (int i = 0; i < partition.getAvatars().size(); ++i){
             g.drawImage(
-                    partition.getAvatars().get(i).getImage(),
+                    partition.getAvatars().get(i).getTokenImage(),
                     partition.getBounds().x + AVATAR_XOFFSET + (i * MULTIPLE_AVATAR_XOFFSET),
                     partition.getBounds().y + AVATAR_YOFFSET + (i * MULTIPLE_AVATAR_YOFFSET),
                     null);

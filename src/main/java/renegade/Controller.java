@@ -39,6 +39,8 @@ public class Controller extends MouseAdapter {
 
     private int setupDataNodesToPlace = -1;
 
+    private Action continueAction;
+
     public Controller(Model model, View view) {
         this.model = model;
         this.view = view;
@@ -99,8 +101,10 @@ public class Controller extends MouseAdapter {
                     PopupUtil.popupNotification(view.getFrame(), "Move", "Select at least one Card with an Information (Blue) Command Point");
                     return;
                 }
+                view.getGamePanel().getActionPanel().disableAll();
                 logger.info("Assigning " + movementPoints + " movement points");
                 view.getGamePanel().getLogPanel().writeln("Gained " + movementPoints + " movement points");
+                view.getGamePanel().getActionPanel().displayMovementPoints(movementPoints);
 
                 // Identify valid moves and enable those partitions
                 updateValidMovementPartitions();
@@ -115,41 +119,80 @@ public class Controller extends MouseAdapter {
         this.view.getGamePanel().getActionPanel().getBtnUpload().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                view.getGamePanel().getActionPanel().disableAll();
                 Avatar me = model.getGame().getCurrentPlayer();
-                // TODO If player at Neural Hub, ask which partition to perform action
                 Partition targetPartition = model.getGame().getBoard().getPlayerPartition(me);
+                if (targetPartition.countContaminants(ContaminantType.NEURAL_HUB) > 0){
+                    // If player at Neural Hub, ask which partition to perform action
+                    model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION);
+                    continueAction = Action.UPLOAD;
+                    PopupUtil.popupNotification(view.getFrame(), "Upload", "Choose partition on which to Upload contaminant");
+                    return;
+                }
                 doUpload(me, targetPartition);
+                run();
             }
         });
 
         this.view.getGamePanel().getActionPanel().getBtnShift().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                CardSet selectedCards = model.getGame().getCurrentPlayer().getSelectedCardsInHandAsSet();
+                shiftPoints = selectedCards.countCommandPoints(Server.GREEN) + selectedCards.countCommandPoints(Server.PURPLE);
+                if (shiftPoints == 0){
+                    logger.warning("Select at least one Card with an Cognition Command Point");
+                    PopupUtil.popupNotification(view.getFrame(), "Shift", "Select at least one Card with a Cognition (Green) Command Point");
+                    return;
+                }
+                view.getGamePanel().getActionPanel().disableAll();
                 Avatar me = model.getGame().getCurrentPlayer();
-                // TODO If player at Neural Hub, ask which partition to perform action
                 Partition targetPartition = model.getGame().getBoard().getPlayerPartition(me);
+                if (targetPartition.countContaminants(ContaminantType.NEURAL_HUB) > 0){
+                    // If player at Neural Hub, ask which partition to perform action
+                    model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION);
+                    continueAction = Action.SHIFT;
+                    PopupUtil.popupNotification(view.getFrame(), "Shift", "Choose partition from which to shift contaminant(s)");
+                    return;
+                }
                 doShift(me, targetPartition);
+                run();
             }
         });
 
         this.view.getGamePanel().getActionPanel().getBtnInstall().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                view.getGamePanel().getActionPanel().disableAll();
                 Avatar me = model.getGame().getCurrentPlayer();
-                // TODO If player at Neural Hub, ask which partition to perform action
                 Partition targetPartition = model.getGame().getBoard().getPlayerPartition(me);
+                if (targetPartition.countContaminants(ContaminantType.NEURAL_HUB) > 0){
+                    // If player at Neural Hub, ask which partition to perform action
+                    model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION);
+                    continueAction = Action.INSTALL;
+                    PopupUtil.popupNotification(view.getFrame(), "Install", "Choose partition on which to install");
+                    return;
+                }
                 doInstall(me, targetPartition);
+                run();
             }
         });
 
         this.view.getGamePanel().getActionPanel().getBtnInfect().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                view.getGamePanel().getActionPanel().disableAll();
                 // Attack a spark or guardian with viruses. Cost: 1 Destruction Point + >0 Viruses
                 Avatar me = model.getGame().getCurrentPlayer();
-                // TODO If player at Neural Hub, ask which partition to perform action
                 Partition targetPartition = model.getGame().getBoard().getPlayerPartition(me);
+                if (targetPartition.countContaminants(ContaminantType.NEURAL_HUB) > 0){
+                    // If player at Neural Hub, ask which partition to perform action
+                    model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION);
+                    continueAction = Action.INFECT;
+                    PopupUtil.popupNotification(view.getFrame(), "Infect", "Choose partition to infect");
+                    return;
+                }
                 doInfect(me, targetPartition);
+                run();
             }
         });
 
@@ -166,10 +209,18 @@ public class Controller extends MouseAdapter {
         this.view.getGamePanel().getActionPanel().getBtnModify().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                view.getGamePanel().getActionPanel().disableAll();
                 Avatar me = model.getGame().getCurrentPlayer();
-                // TODO If player at Neural Hub, ask which partition to perform action
                 Partition targetPartition = model.getGame().getBoard().getPlayerPartition(me);
+                if (targetPartition.countContaminants(ContaminantType.NEURAL_HUB) > 0){
+                    // If player at Neural Hub, ask which partition to perform action
+                    model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION);
+                    continueAction = Action.MODIFY;
+                    PopupUtil.popupNotification(view.getFrame(), "Modify", "Choose partition on which to modify a spark");
+                    return;
+                }
                 doModify(me, targetPartition);
+                run();
             }
         });
 
@@ -228,9 +279,11 @@ public class Controller extends MouseAdapter {
                 if (selectedHexagon != null){
                     // Place Data Node at this partition
                     Partition p = this.model.getGame().getBoard().getPartitionAtCoord(selectedHexagon.getX(), selectedHexagon.getY());
-                    this.model.getGame().getBoard().addDataNode(p);
-                    setupDataNodesToPlace -= 1;
-                    view.refresh();
+                    if (p != null) {
+                        this.model.getGame().getBoard().addDataNode(p);
+                        setupDataNodesToPlace -= 1;
+                        view.refresh();
+                    }
                 }
             }
             run();
@@ -244,19 +297,19 @@ public class Controller extends MouseAdapter {
                 Partition myPartition = this.model.getGame().getBoard().getPlayerPartition(me);
                 myPartition.getAvatars().remove(me);
                 destPartition.getAvatars().add(me);
-                // If moved from Data Port to Data Port/Node, then no movement cost
-                if (myPartition.countContaminants(ContaminantType.DATA_PORT) > 0 &&
-                        (destPartition.countContaminants(ContaminantType.DATA_PORT) > 0 ||
-                                destPartition.countContaminants(ContaminantType.DATA_NODE) > 0)){
+                // If moved from Data Port/Node to Data Port/Node, then no movement cost
+                if (myPartition.countContaminants(ContaminantType.DATA_PORT, ContaminantType.DATA_NODE) > 0 &&
+                        destPartition.countContaminants(ContaminantType.DATA_PORT, ContaminantType.DATA_NODE) > 0){
                     // free movement
                 }
                 else {
                     movementPoints -= 1;
                     allPartitionsValidForMovement = false;
                     validMovementPartitions.clear();
+                    view.getGamePanel().getActionPanel().displayMovementPoints(movementPoints);
                 }
 
-                if (!myPartition.getContaminants().isEmpty()) {
+                if (myPartition.hasContaminants()) {
                     // Ask user if they want to take any contaminants with them (up to 3 of same color)
                     ContaminantSelectionDialog dialog =
                             new ContaminantSelectionDialog(
@@ -265,8 +318,7 @@ public class Controller extends MouseAdapter {
                                     ContaminantSelectionDialog.POLICY_UP_TO_3_SAME_COLOR);
                     dialog.setVisible(true);
                     for (Contaminant carriedContaminant: dialog.getSelected()){
-                        myPartition.getContaminants().remove(carriedContaminant);
-                        destPartition.getContaminants().add(carriedContaminant);
+                        model.getGame().getBoard().moveContaminant(carriedContaminant, myPartition, destPartition);
                     }
                 }
 
@@ -304,11 +356,10 @@ public class Controller extends MouseAdapter {
                     PopupUtil.popupNotification(view.getFrame(), "Shift", "Cannot shift Installations!");
                     return;
                 }
-                shiftSourcePartition.getContaminants().remove(contaminant);
-                destPartition.getContaminants().add(contaminant);
+                model.getGame().getBoard().moveContaminant(contaminant, shiftSourcePartition, destPartition);
                 shiftPoints -= 1;
-                validShiftPartitions.clear();
-                shiftSourcePartition = null;
+                //validShiftPartitions.clear();
+                //shiftSourcePartition = null;
                 this.view.refresh();
                 run();
             }
@@ -316,6 +367,33 @@ public class Controller extends MouseAdapter {
                 logger.warning("Unable to shift to that partition!");
                 PopupUtil.popupNotification(view.getFrame(), "Shift", "Unable to shift to that partition");
             }
+        }
+        else if (model.getGame().getPhaseStep() == GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_PARTITION) {
+            Partition destPartition = getPartitionAt(e.getX(), e.getY());
+            if (destPartition == null)
+                return;
+            Avatar me = model.getGame().getCurrentPlayer();
+            switch (continueAction) {
+                case UPLOAD:
+                    doUpload(me, destPartition);
+                    break;
+                case INFECT:
+                    doInfect(me, destPartition);
+                    break;
+                case SHIFT:
+                    doShift(me, destPartition);
+                    break;
+                case INSTALL:
+                    doInstall(me, destPartition);
+                    break;
+                case MODIFY:
+                    doModify(me, destPartition);
+                    break;
+                default:
+                    logger.warning("Attempting to continue unknown action");
+            }
+            model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS);
+            run();
         }
     }
 
@@ -326,12 +404,18 @@ public class Controller extends MouseAdapter {
                 case SETUP:
                     switch (this.model.getGame().getPhaseStep()) {
                         case START_PHASE:
+                            this.view.refresh();
                             this.view.getGamePanel().getLogPanel().writeln("*** SETUP ***", LogPanel.BOLD_ITALIC);
-                            // TODO Choose Players
-                            this.model.getGame().getAvatars().add(new Avatar(Server.BLUE));
-                            this.model.getGame().getAvatars().add(new Avatar(Server.YELLOW));
-                            // TODO Choose SMC
-                            this.model.getGame().setSmc(new AlphaMobySMC());
+                            // Choose Players
+                            AvatarSelectionDialog dialog = new AvatarSelectionDialog();
+                            dialog.setVisible(true);
+                            for (Avatar avatar: dialog.getSelected()) {
+                                this.model.getGame().getAvatars().add(avatar);
+                            }
+                            // Choose SMC
+                            SMCSelectionDialog smcSelectionDialog = new SMCSelectionDialog();
+                            smcSelectionDialog.setVisible(true);
+                            this.model.getGame().setSmc(smcSelectionDialog.getSelected());
                             this.view.getGamePanel().getLogPanel().writeln("SMC: " + this.model.getGame().getSmc().getName());
                             this.model.getGame().setupSMC();
 
@@ -399,6 +483,7 @@ public class Controller extends MouseAdapter {
                             this.model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS);
                             break;
                         case EXECUTE_COMMANDS:
+                            this.view.getGamePanel().getActionPanel().enableAll();
                             if (!this.model.getGame().getCurrentPlayer().getHand().isEmpty() && !this.model.getGame().isCurrentPlayerPassed()) {
                                 return;
                             }
@@ -408,12 +493,13 @@ public class Controller extends MouseAdapter {
                         case EXECUTE_COMMANDS_MOVE:
                             if (movementPoints == 0) {
                                 this.model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS);
+                                view.getGamePanel().getActionPanel().clearInfo();
                                 break;
                             }
                             else
                                 updateValidMovementPartitions();
                             return;
-                        case EXECUTE_COMMANDS_CHOOSE_SOURCE_PARTITION:
+                        case EXECUTE_COMMANDS_CHOOSE_PARTITION:
                             return;
                         case EXECUTE_COMMANDS_SHIFT:
                             if (shiftPoints == 0){
@@ -452,16 +538,16 @@ public class Controller extends MouseAdapter {
                             // Virus Battle Segment
                             this.model.getGame().getBoard().getServerTiles().stream().forEach(st -> {
                                 st.getPartitions().stream().forEach(p -> {
-                                    if (p.getContaminants().contains(ContaminantType.VIRUS) && !p.getCountermeasures().isEmpty()){
+                                    if (p.countContaminants(ContaminantType.VIRUS) > 0 && !p.getCountermeasures().isEmpty()){
                                         int virusRoll = Util.roll();
                                         int cmRoll = Util.roll();
                                         virusRoll += p.countContaminants(ContaminantType.VIRUS);
                                         cmRoll += p.countCountermeasures(CountermeasureType.SPARK) + (4 * p.countCountermeasures(CountermeasureType.GUARDIAN));
                                         if (virusRoll > cmRoll){
-                                            p.getCountermeasures().clear();
+                                            model.getGame().getBoard().removeAllCountermeasuresFromPartition(p);
                                         }
                                         else {
-                                            p.getContaminants().remove(ContaminantType.VIRUS);
+                                            model.getGame().getBoard().removeFromPartition(ContaminantType.VIRUS, p);
                                         }
                                     }
                                 });
@@ -470,16 +556,14 @@ public class Controller extends MouseAdapter {
                             // Delete Contaminants Segment
                             this.model.getGame().getBoard().getServerTiles().stream().forEach(st -> {
                                 st.getPartitions().stream().filter(p -> !p.getContaminants().isEmpty() && !p.getCountermeasures().isEmpty()).forEach(p -> {
-                                    List<Contaminant> installations = p.getContaminants().stream().filter(c -> c.getType().isInstallation()).collect(Collectors.toList());
-                                    p.getContaminants().clear();
-                                    p.getContaminants().addAll(installations);
+                                    model.getGame().getBoard().removeAllNonInstallationsFromPartition(p);
                                 });
                             });
 
                             // Delete Installations Segment
                             this.model.getGame().getBoard().getServerTiles().stream().forEach(st -> {
                                 st.getPartitions().stream().filter(p -> p.getCountermeasures().contains(CountermeasureType.GUARDIAN)).forEach(p -> {
-                                    p.getContaminants().clear();
+                                    model.getGame().getBoard().removeAllContaminantsFromPartition(p);
                                 });
                             });
 
@@ -524,11 +608,13 @@ public class Controller extends MouseAdapter {
                                     for (MoveSpark moveSpark : goal.getMoveSparks()) {
                                         Server server = moveSpark.getServer();
                                         boolean up = goal.isSuccess() ? moveSpark.isUp() : !moveSpark.isUp();
-                                        model.getGame().getBoard().moveSparks(model.getGame().getBoard().getServerTile(server), up);
+                                        if (!model.getGame().getBoard().moveSparks(model.getGame().getBoard().getServerTile(server), up)){
+                                            this.model.getGame().setPhase(GamePhase.GAMEOVER);
+                                            return;
+                                        }
                                     }
                                 }
                             }
-                            // TODO Check for Guardian/Firewall creation and explosions
                             this.model.getGame().setPhaseStep(GamePhaseStep.COUNTERMEASURES_SCORING);
                             break;
                         case COUNTERMEASURES_SCORING:
@@ -588,14 +674,12 @@ public class Controller extends MouseAdapter {
             return;
         }
 
+        // Add neighbors
         List<Partition> neighbors = model.getGame().getBoard().getNeighbors(myPartition);
         validMovementPartitions.addAll(neighbors);
         for (Partition partition: neighbors){
             logger.info("Added valid movement destination: " + partition);
         }
-
-        // TODO Add partitions connected via Data Nodes
-
     }
 
     private void doInstall(Avatar currentPlayer, Partition targetPartition){
@@ -610,7 +694,19 @@ public class Controller extends MouseAdapter {
                         .filter(s -> contaminantsWithAtLeast3.contains(s))
                         .collect(Collectors.toList());
         if (possibleColors.size() > 1){
-            // TODO Ask user what to color to install and update colorsWith3OrMoreCmdPts
+            // Ask user what to color to install and update colorsWith3OrMoreCmdPts
+            List<Contaminant> possibleInstallations = possibleColors.stream().map(server -> model.getGame().getBoard().getInstallation(server)).collect(Collectors.toList());
+            ContaminantSelectionDialog dialog = new ContaminantSelectionDialog("Choose what to install", possibleInstallations, ContaminantSelectionDialog.POLICY_SINGLE);
+            dialog.setVisible(true);
+            // Return installations to token pool
+            model.getGame().getBoard().returnContaminantsToPool(possibleInstallations);
+            // Handle selected
+            List<Contaminant> selected = dialog.getSelected();
+            if (selected.isEmpty()) {
+                return;
+            }
+            possibleColors.clear();
+            possibleColors.add(selected.get(0).getType().getServer());
         }
         if (possibleColors.size() == 1){
             // Install this color
@@ -621,23 +717,34 @@ public class Controller extends MouseAdapter {
                 return;
             }
             // Remove 3 contaminants
-            ContaminantType contaminant = ContaminantType.ofServer(color);
-            targetPartition.getContaminants().remove(contaminant);
-            targetPartition.getContaminants().remove(contaminant);
-            targetPartition.getContaminants().remove(contaminant);
+            ContaminantType contaminantType = ContaminantType.ofServer(color);
+            model.getGame().getBoard().removeFromPartition(contaminantType, targetPartition);
+            model.getGame().getBoard().removeFromPartition(contaminantType, targetPartition);
+            model.getGame().getBoard().removeFromPartition(contaminantType, targetPartition);
             // Discard command cards
             currentPlayer.discardFromHand(selectedCards);
             logger.info("Installed " + color.getInstallationName() + " at " + targetPartition);
             view.getGamePanel().getLogPanel().writeln("Installed " + color.getInstallationName() + " at " + targetPartition);
         }
-        run();
     }
 
     public void doUpload(Avatar player, Partition targetPartition){
         CardSet selectedCards = model.getGame().getCurrentPlayer().getSelectedCardsInHandAsSet();
         List<Server> colorsWith3OrMoreCmdPts = selectedCards.getColorsWithAtLeast(3);
         if (colorsWith3OrMoreCmdPts.size() > 1){
-            // TODO Ask user what to color to upload and update colorsWith3OrMoreCmdPts
+            // Ask user what to color to upload and update colorsWith3OrMoreCmdPts
+            List<Contaminant> possibleContaminants = colorsWith3OrMoreCmdPts.stream().map(server -> model.getGame().getBoard().getContaminant(server)).collect(Collectors.toList());
+            ContaminantSelectionDialog dialog = new ContaminantSelectionDialog("Choose what to upload", possibleContaminants, ContaminantSelectionDialog.POLICY_SINGLE);
+            dialog.setVisible(true);
+            // Return installations to token pool
+            model.getGame().getBoard().returnContaminantsToPool(possibleContaminants);
+            // Handle selected
+            List<Contaminant> selected = dialog.getSelected();
+            if (selected.isEmpty()) {
+                return;
+            }
+            colorsWith3OrMoreCmdPts.clear();
+            colorsWith3OrMoreCmdPts.add(selected.get(0).getType().getServer());
         }
         if (colorsWith3OrMoreCmdPts.size() == 1){
             // Upload this color
@@ -651,11 +758,11 @@ public class Controller extends MouseAdapter {
             logger.info("Uploaded " + color.getContaminantName());
             view.getGamePanel().getLogPanel().writeln("Uploaded " + color.getInstallationName() + " at " + targetPartition);
         }
-        run();
     }
 
     public void doShift(Avatar player, Partition targetPartition){
         // Push a containment or spark from target partition to an adjacent partition. Cost: 1 Cognition Point per containment/spark to shift.
+        /*
         CardSet selectedCards = model.getGame().getCurrentPlayer().getSelectedCardsInHandAsSet();
         int cognitionPoints = selectedCards.countCommandPoints(Server.GREEN) + selectedCards.countCommandPoints(Server.PURPLE);
         if (cognitionPoints == 0){
@@ -669,6 +776,7 @@ public class Controller extends MouseAdapter {
             model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_CHOOSE_SOURCE_PARTITION);
         }
         else {
+         */
             shiftSourcePartition = targetPartition;
 
             // Identify valid shift partitions and enable those partitions
@@ -676,13 +784,12 @@ public class Controller extends MouseAdapter {
             validShiftPartitions.addAll(model.getGame().getBoard().getNeighbors(targetPartition));
 
             model.getGame().setPhaseStep(GamePhaseStep.EXECUTE_COMMANDS_SHIFT);
-        }
-        run();
+        //}
     }
 
     public void doInfect(Avatar player, Partition targetPartition){
         // Attack a spark or guardian with viruses. Cost: 1 Destruction Point + >0 Viruses
-        CardSet selectedCards = model.getGame().getCurrentPlayer().getSelectedCardsInHandAsSet();
+        CardSet selectedCards = player.getSelectedCardsInHandAsSet();
         int destructionPoints = selectedCards.countCommandPoints(Server.RED) + selectedCards.countCommandPoints(Server.PURPLE);
         if (destructionPoints == 0){
             PopupUtil.popupNotification(view.getFrame(), "Infect", "You must select at least one Destruction (Red) Command Point");
@@ -695,6 +802,7 @@ public class Controller extends MouseAdapter {
         }
 
         doBattle(targetPartition, destructionPoints);
+        player.discardFromHand(selectedCards);
     }
 
     public void doBattle(Partition targetPartition, int destructionPoints){
@@ -724,16 +832,16 @@ public class Controller extends MouseAdapter {
 
         if (infectionScore > resistanceScore){
             // Delete all sparks and guardians
-            while (targetPartition.getCountermeasures().contains(CountermeasureType.SPARK))
-                targetPartition.getCountermeasures().remove(CountermeasureType.SPARK);
-            if (targetPartition.getCountermeasures().contains(CountermeasureType.GUARDIAN))
-                targetPartition.getCountermeasures().remove(CountermeasureType.GUARDIAN);
+            while (targetPartition.countCountermeasures(CountermeasureType.SPARK) > 0) {
+                model.getGame().getBoard().removeFromPartition(CountermeasureType.SPARK, targetPartition);
+            }
+            if (targetPartition.countCountermeasures(CountermeasureType.GUARDIAN) > 0) {
+                model.getGame().getBoard().removeFromPartition(CountermeasureType.GUARDIAN, targetPartition);
+            }
         }
         else {
-            targetPartition.getContaminants().remove(ContaminantType.VIRUS);
+            model.getGame().getBoard().removeFromPartition(ContaminantType.VIRUS, targetPartition);
         }
-
-        run();
     }
 
     private void doModify(Avatar currentPlayer, Partition targetPartition){
@@ -761,7 +869,19 @@ public class Controller extends MouseAdapter {
                         .collect(Collectors.toList());
 
         if (possibleColors.size() > 1){
-            // TODO Ask user what to color to modify to and update possibleColors
+            // Ask user what to color to modify to and update possibleColors
+            List<Contaminant> possibleContaminants = possibleColors.stream().map(server -> model.getGame().getBoard().getContaminant(server)).collect(Collectors.toList());
+            ContaminantSelectionDialog dialog = new ContaminantSelectionDialog("Choose what to modify spark to", possibleContaminants, ContaminantSelectionDialog.POLICY_SINGLE);
+            dialog.setVisible(true);
+            // Return installations to token pool
+            model.getGame().getBoard().returnContaminantsToPool(possibleContaminants);
+            // Handle selected
+            List<Contaminant> selected = dialog.getSelected();
+            if (selected.isEmpty()) {
+                return;
+            }
+            possibleColors.clear();
+            possibleColors.add(selected.get(0).getType().getServer());
         }
 
         if (possibleColors.size() == 1){
@@ -772,13 +892,11 @@ public class Controller extends MouseAdapter {
                 return;
             }
             // Remove 1 spark
-            Countermeasure spark = targetPartition.removeCountermeasure(CountermeasureType.SPARK);
-            model.getGame().getBoard().returnToPool(spark);
+            model.getGame().getBoard().removeFromPartition(CountermeasureType.SPARK, targetPartition);
             // Discard command cards
             currentPlayer.discardFromHand(selectedCards);
             logger.info("Modified Spark to " + color.getContaminantName() + " at " + targetPartition);
         }
-        run();
     }
 
     public Partition getPartitionAt(int mx, int my) {

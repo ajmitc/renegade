@@ -1,2 +1,8 @@
 Bugs
 - ContaminantSelectDialog doesn't size properly and need to highlight selected contaminants
+- Something is wrong with Yellow partition 3 [3, 1] (cannot place contaminants on it and no sparks placed there)
+- Implement rule that no partition can have more than 3 contaminants of same color
+- Implement rule that you cannot voluntarily move or shift a spark into a partition with a Guardian
+
+Features
+- You may discard any three Command cards to generate one Leadership Command (Purple) point
